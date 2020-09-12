@@ -104,6 +104,8 @@ function App() {
       }
       <h1>Our own Authentication</h1>
       
+      <input type="checkbox" name="newUser" id=""></input>
+      <label htmlFor="newUser">New User SignIn</label>
       <form onSubmit = {submitHandeler}>
         <input name="name" type="text" onBlur={handelBlur} placeholder="Enter Name"></input><br/>
         <input type="email" required name="email" onBlur={handelBlur} placeholder="Enter email" ></input> <br/>
