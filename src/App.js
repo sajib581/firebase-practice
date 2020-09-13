@@ -10,6 +10,7 @@ firebase.initializeApp(firebaseConfig);
 function App() {
   const provider = new firebase.auth.GoogleAuthProvider();
 
+  const [newUser, setNewUser] = useState(false)
   const [user,setUser] = useState({
     isLoggedIn : false,
     name : '' ,
@@ -29,8 +30,7 @@ function App() {
         name : displayName ,
         email : email ,
         photo : photoURL 
-      }
-      setUser(signedInUser)
+      }      
     })
   }
 
@@ -71,13 +71,14 @@ function App() {
 
   const submitHandeler = (e) =>{
     //console.log(user.email, user.password);
-    if(user.email && user.password){
+    if(newUser && user.email && user.password){
       firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
       .then(res =>{
         const newUserInfo = {...user}
         newUserInfo.error = ''
         newUserInfo.success = true 
-        setUser(newUserInfo)
+        setUser(newUserInfo)        
+        updateUserInfo(user.name)
       }) 
       .catch(error => {
         // Handle Errors here.
@@ -87,7 +88,35 @@ function App() {
         setUser(newUserInfo)
       });
     }
+    if(!newUser && user.email && user.password){
+      firebase.auth().signInWithEmailAndPassword(user.email, user.password)
+      .then(res =>{
+        const newUserInfo = {...user}
+        newUserInfo.error = ''
+        newUserInfo.success = true 
+        setUser(newUserInfo)
+        console.log('SignIn User Info',res.user);
+      })
+      .catch(function(error) {
+       // Handle Errors here.
+       const newUserInfo = {...user}
+       newUserInfo.error = error.message
+       newUserInfo.success = false
+       setUser(newUserInfo)
+      });
+    }
     e.preventDefault()
+  }
+
+  const updateUserInfo = name =>{
+    const user = firebase.auth().currentUser;
+    user.updateProfile({
+      displayName: name      
+    }).then(function() {
+      console.log('User name update successfully');
+    }).catch(function(error) {
+      console.log(error);
+    });
   }
   return (
     <div className="App">
@@ -104,16 +133,16 @@ function App() {
       }
       <h1>Our own Authentication</h1>
       
-      <input type="checkbox" name="newUser" id=""></input>
+      <input type="checkbox" onChange={()=>setNewUser(!newUser)} name="newUser" id=""></input>
       <label htmlFor="newUser">New User SignIn</label>
       <form onSubmit = {submitHandeler}>
-        <input name="name" type="text" onBlur={handelBlur} placeholder="Enter Name"></input><br/>
+        {newUser && <input name="name" type="text" onBlur={handelBlur} placeholder="Enter Name"></input>}<br/>
         <input type="email" required name="email" onBlur={handelBlur} placeholder="Enter email" ></input> <br/>
         <input type="password" name="password" onBlur={handelBlur} placeholder="Enter password"></input> <br/>
-        <input type="submit" onClick={submitHandeler} ></input>
+        <input type="submit" value={newUser ? 'Signup' : 'SignIn'} onClick={submitHandeler} ></input>
       </form>
     <p style={{color: 'red'}}>{user.error}</p>
-    {user.success && <p style={{color: 'green'}}>User Created Successfully</p>}
+    {user.success && <p style={{color: 'green'}}>User {newUser ? 'Created' : 'Logged in'} Successfully</p>}
     </div>
   );
 }
