@@ -8,8 +8,9 @@ import firebaseConfig from './firebase.config';
 firebase.initializeApp(firebaseConfig);
 
 function App() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-
+  const googleProvider = new firebase.auth.GoogleAuthProvider();
+  const fbprovider = new firebase.auth.FacebookAuthProvider();
+  
   const [newUser, setNewUser] = useState(false)
   const [user,setUser] = useState({
     isLoggedIn : false,
@@ -22,7 +23,7 @@ function App() {
   })
 
   const signInHandeler = () =>{
-    firebase.auth().signInWithPopup(provider)
+    firebase.auth().signInWithPopup(googleProvider)
     .then(res => {
       const {displayName,email,photoURL} = res.user
       const signedInUser = {
@@ -118,15 +119,35 @@ function App() {
       console.log(error);
     });
   }
+  const handleFbSignin = () =>{
+    firebase.auth().signInWithPopup(fbprovider).then(function(result) {
+      // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+      var token = result.credential.accessToken;
+      // The signed-in user info.
+      var user = result.user;
+      console.log("FB user after sign in", user);
+    }).catch(function(error) {
+      // Handle Errors here.
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      // The email of the user's account used.
+      var email = error.email;
+      // The firebase.auth.AuthCredential type that was used.
+      var credential = error.credential;
+      // ...
+    });
+  }
   return (
     <div className="App">
       {
         user.isLoggedIn ? <button onClick={signOutHandeler}>Sign Out</button>
                         :  <button onClick={signInHandeler}>Sign In</button>
       }
+      <br/>
+      <button onClick={handleFbSignin}>Login with facebook</button>
       {
         user.isLoggedIn && <div>
-          <p>Welcome, {user.name}</p>          
+          <p>Welcome, {user.name}</p>       
           <p>Email : {user.email}</p>
           <img src={user.photo}></img>
         </div>
